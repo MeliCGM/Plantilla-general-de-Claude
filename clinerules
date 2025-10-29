@@ -1,0 +1,159 @@
+# Adaptive Optimizer - Instrucciones para Claude Code
+
+Este proyecto usa **Adaptive Optimizer** para gestión inteligente de workflows.
+
+## 🎯 CUÁNDO USAR CADA SISTEMA
+
+### Loop Detector (Anti-Bucles)
+**USA ANTES DE:**
+- Reinstalar dependencias que pueden ya estar instaladas
+- Reintentar operaciones que fallaron anteriormente
+- Ejecutar comandos que ya corriste
+- Hacer búsquedas repetitivas
+
+**COMANDO:**
+```bash
+ao loop check "NOMBRE_ACCION" --context "DETALLES"
+```
+
+**EJEMPLO:**
+```bash
+# Antes de npm install
+ao loop check "npm_install" --context "dependencies"
+
+# Antes de git push que falló antes
+ao loop check "git_push" --context "origin main"
+```
+
+### Context Manager (Memoria)
+**USA PARA:**
+- Cambiar fase del proyecto (planning → development → testing → deploy)
+- Documentar cambios importantes con el "por qué"
+- Registrar issues y resoluciones
+- Documentar decisiones técnicas
+- Mapear dependencias entre componentes
+
+**COMANDOS:**
+```bash
+# Cambiar fase
+ao context NOMBRE_PROYECTO phase "FASE_ACTUAL"
+
+# Documentar cambio
+ao context NOMBRE_PROYECTO change "COMPONENTE" "QUE_CAMBIO" --reason "POR_QUE"
+
+# Agregar issue
+ao context NOMBRE_PROYECTO issue "TITULO" "DESCRIPCION" --severity [low|medium|high|critical]
+
+# Documentar decisión
+ao context NOMBRE_PROYECTO decision "QUE_DECIDISTE" "POR_QUE"
+
+# Ver estado
+ao context NOMBRE_PROYECTO summary
+```
+
+### Resource Optimizer (Planificación)
+**USA PARA:**
+- Planificar múltiples operaciones antes de ejecutarlas
+- Agrupar tareas similares (batch operations)
+- Validar dependencias entre operaciones
+- Optimizar orden de ejecución
+
+**COMANDOS:**
+```bash
+# Agregar operaciones al plan
+ao optimize add TIPO "TARGET" --priority [low|medium|high|critical] --dependencies "DEP1,DEP2"
+
+# Ver plan optimizado
+ao optimize plan
+
+# Validar dependencias
+ao optimize validate
+
+# Limpiar plan
+ao optimize clear
+```
+
+## 📋 WORKFLOW RECOMENDADO
+
+### Al iniciar una tarea:
+1. `ao context PROYECTO phase "FASE_ACTUAL"`
+2. `ao loop reset` (limpiar estado anterior)
+3. Planificar con optimizer si hay múltiples pasos
+
+### Durante la tarea:
+1. ANTES de cada acción importante: `ao loop check "ACCION"`
+2. DESPUÉS de cambios: `ao context PROYECTO change "QUE" "CAMBIO" --reason "POR_QUE"`
+3. Si algo falla: `ao loop fail "ACCION" --reason "ERROR"`
+
+### Al completar milestone:
+1. `ao loop checkpoint "NOMBRE" --data '{"status": "completado"}'`
+2. `ao context PROYECTO phase "SIGUIENTE_FASE"`
+3. `ao context PROYECTO summary` (revisar estado)
+
+## 🚨 REGLAS CRÍTICAS
+
+1. **NUNCA repitas una acción 3+ veces sin cambiar enfoque**
+   - Usa `ao loop check` antes de reintentar
+   - Si falla 2 veces, el sistema forzará cambio de estrategia
+
+2. **SIEMPRE documenta el "por qué", no solo el "qué"**
+   - Usa `ao context ... decision` para decisiones técnicas
+   - Usa `--reason` en todos los cambios
+
+3. **MAPEA dependencias explícitamente**
+   - Usa `ao context ... dependency` para relaciones entre componentes
+   - Valida con `ao optimize validate`
+
+4. **CONSULTA el estado antes de continuar**
+   - `ao loop summary` → ¿Qué he intentado?
+   - `ao context PROYECTO summary` → ¿Dónde estoy?
+
+## 💡 EJEMPLOS PRÁCTICOS
+
+### Ejemplo 1: Instalando dependencias
+```bash
+# Verificar si ya intentamos
+ao loop check "npm_install" --context "package.json"
+
+# Si procede, instalar
+npm install
+
+# Documentar
+ao context mi_app change "dependencies" "Instaladas todas las deps" --reason "Proyecto inicial"
+```
+
+### Ejemplo 2: Debugging un error
+```bash
+# Registrar el issue
+ao context mi_app issue "Error 500 en login" "TypeError en auth.js línea 42" --severity high
+
+# Después de arreglar
+ao context mi_app resolve "issue_1" "Agregué validación de null en token"
+```
+
+### Ejemplo 3: Planificando múltiples tareas
+```bash
+# Planificar
+ao optimize add read "config.json" --priority high
+ao optimize add validate "config" --priority high --dependencies "config.json"
+ao optimize add process "data" --priority critical --dependencies "config"
+ao optimize add deploy "app" --priority high --dependencies "data"
+
+# Ver plan optimizado
+ao optimize plan
+
+# Validar
+ao optimize validate
+```
+
+## 🔍 LOCALIZACIÓN DE ARCHIVOS
+
+Los archivos de estado se guardan en:
+- Windows: `C:\Users\USERNAME\AppData\Local\Temp\`
+- Los archivos son: `loop_detector_state.json`, `context_PROYECTO.json`
+
+## 📚 MÁS INFO
+
+- Documentación completa: `README.md`
+- Cheat sheet: `CHEATSHEET.md`
+- Ayuda: `ao --help`, `ao loop --help`, `ao context --help`, `ao optimize --help`
